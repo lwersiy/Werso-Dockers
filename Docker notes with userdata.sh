@@ -131,7 +131,7 @@ docker build . -t imageNAME:TAG
 docker build . -t firstimage:v1
 
 Naming Existing images
-docker tag imageID containerNAME:TAG
+docker tag imageID imageNAME:TAG
 docker tag 8912f4be8bd3 firstimage:v2
 
 #################################################################################
@@ -151,12 +151,13 @@ docker inspect firstimage --format='{{.Os}}'
 #################################################################################
 Exporting and importing Docker containers to and from s3 bucket
 
-docker export 435148723c6a > myfirstcontainerzip.tar ===> zip container
-s3 cp myfirstcontainerzip.tar s3://wersobucket111 --region us-east-1 ===> Export container to s3
+docker export c99306fd49f9 > myfirstcontainerzip.tar ===> zip container
+aws s3 cp myfirstcontainerzip.tar s3://wersobucket111 --region us-east-1 ===> Export container to s3
 aws s3 cp s3://wersobucket111/myfirstcontainerzip.tar /home/ec2-user/demo3 ===> Import container from s3 bucket
 
 cat myfirstcontainerzip.tar | docker import - brandnew:latest ===> creating images from imported container
 
+docker run -dt ca76f68c13e3 /bin/bash ===> use image to run container
 
 
 aws s3 cp s3://your-s3-bucket/path/to/docker-image.tar /path/on/ec2/

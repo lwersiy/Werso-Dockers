@@ -161,3 +161,73 @@ docker run -dt ca76f68c13e3 /bin/bash ===> use image to run container
 
 
 aws s3 cp s3://your-s3-bucket/path/to/docker-image.tar /path/on/ec2/
+
+##################################################################################
+
+PUSHING AND PULLING DOCKER CONTAINER IMAGES TO AND FROM PUBLIC AND PRIVATE REPOSITORIES
+
+<<<REPOS>>>
+Github
+Gitlab
+Nexus
+ECS
+ECR
+Dockerhub
+
+<<<<Two types of repos are PRIVATE and PUBLIC Repository>>>>
+
+Private Repos: Only you have access to this repor. You have access to both PULL $ PUSH
+Public Repos: Everyone can pull images, however pushing is not allowed.
+
+
+<<<<<<<<<<<<< Pushing to Dockerhub >>>>>>>>>>>>>>>>>>>>
+
+Tag Your Image:
+
+Before you can push an image to a remote repository, you need to tag it with the repository's URL. Use the following command to tag your image:
+
+1) list images to identify the image you want to push
+
+[root@ip-10-0-3-135 docker]# docker images
+REPOSITORY           TAG       IMAGE ID       CREATED       SIZE
+nginx                latest    bc649bab30d1   12 days ago   187MB
+
+
+2) Tag the local image with the remote repository
+
+docker tag <image-id> <repo-name>:tag-name
+
+docker tag bc649bab30d1 wersiygb/wersorepo:v1
+
+3: Push to Docker up repo
+
+docker push wersiygb/wersorepo:v1
+
+##################################################################################################
+
+<<<<<<<<<<<< Pushing Docker Images to AWS ECR >>>>>>>>>>>>>>
+
+--- create an AWS ECR repo
+--- Attache a role to the host instance, or run aws configure
+--- select the repo and click on PUSH COMMAND FOR <repo-name>
+--- run the command "aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 989589514705.dkr.ecr.us-east-1.amazonaws.com"
+--- build your image using ECR Repo name "docker build -t wersoecr" or simply rename your image with repo name
+--- tag your image using command "docker tag wersoecr:latest 989589514705.dkr.ecr.us-east-1.amazonaws.com/wersoecr:latest"
+--- Push to ECR using command "docker push 989589514705.dkr.ecr.us-east-1.amazonaws.com/wersoecr:latest"
+
+#######################################################################################################
+
+<<<<<<<<<< Updating and Commiting Docker containers >>>>>>>>>>
+
+=== In a case of emergency, log in to the container using command "docker exec -it <container-ID> bash"
+=== Install the new application in the docker container using commands such as yum, apt-get etc.
+=== after installing application, commit the container in order to update the image using the below command
+"docker container commit my-container my-custom-image:latest"
+=== Now your new image has 2 applications running.
+
+#########################################################################################################
+
+The difference between docker container and docker image is the top writable layer.
+All writes to the container that adds or modifies existing data are stored in the writable layer.
+
+#########################################################################################################

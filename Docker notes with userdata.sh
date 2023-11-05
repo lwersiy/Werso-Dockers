@@ -46,6 +46,13 @@ dockercontainers
 
 ########################################################################################
 
+  <<<<<<<<<<<< running an application from nginx image directly from docker hub >>>>>>>>>>>>
+
+docker run -d -p 80:80 -v /home/ec2-user/docker/index.html:/usr/share/nginx/html/index.html nginx
+
+
+########################################################################################
+
 FROM ubuntu
 RUN apt-get update -y
 RUN apt-get install nginx -y
@@ -231,3 +238,138 @@ The difference between docker container and docker image is the top writable lay
 All writes to the container that adds or modifies existing data are stored in the writable layer.
 
 #########################################################################################################
+
+<<<<<<<<<<<<< Docker Network >>>>>>>>>>>>
+
+Network Drivers: bridge, host, none, overlay, macvlan
+
+- "ifconfig" lists network properties
+- "docker network ls" this will list the different network ID and drivers
+- "docker network inspect bridge" This will give you details on the bridge driver
+- docker0 is the gateway for any traffic entering the docker network.
+- "apt-get update -y && apt-get install net-tools" This command install network tools in an ubuntu server.
+- "apt-get install iputils-ping" this command install the ping tool
+- By default all docker container utilizes the bridge network. This meanse containers in the same network can easily communicate with each other.
+
+<<<<<<<<<<<<<< Creating a costum bridge Network>>>>>>>>>>>>>
+
+- "brctl show"
+- "yum install bridge-utils"
+- "docker network create --driver bridge myfirstbridge"
+- "docker network ls"
+- to run a container into a specific network, just pass the flag as below
+- "docker run -dt -p 8081:80 --network myfirstbridge nginx"
+
+###############################################################################################################
+
+<<<<<<<<<<<< Docker Storage >>>>>>>>>>>>>>
+<<<<<<<<< PERSISTENT VOLUME >>>>>>>>>>>>>>
+- "docker volume ls"
+- "docker volume create myvolume1"
+- path to volume on local instance "/var/lib/docker/volumes/myvolume1/_data"
+- "docker volume inspect myvolume1"
+- "docker run -dt -p 8082:80 --volume myvolume1 nginx"
+- "docker run -dt -v myvolume1:/etc busybox sh" 
+in the above command, myvolume1 is present in ec2 path above
+busybox container is created and the data is stored in container etc folder
+container etc is connected to myvolume1 of ec2 instance. this operates as file share. 
+whenever data is added in etc, it automatically update in myvolume1 in ec2.
+if the container dies, the myvolume1 can be attached to a new container.
+
+
+<<<<<<< Mount Types >>>>>>>>>
+
+1) Bind Mounts: This links a directory or file on the host system to a directory inside the container.
+     Useful for sharing config files, source code, and othe data.
+     "docker run -v /path/to/host:/path/in/container my-image"
+
+2) Volume Mounts: Here we create a named volume managed by docker and provide a way to store and manage dater separete from container's lifecycle.
+     Use best for persist volume beyond container lifestyle 
+     "docker volume create my-volume"
+     "docker run -v my-volume:/path/in/container my-image"
+
+3) tmpfs Mount: This allow you to store data temporaly in the RAM of the host system.
+     Data in this system are not persisted on the host.
+     Best use for temporary storage or for cases where you want to minimize diks I/O.
+     "docker run --tmpfs /path/in/container my-image"
+
+NOTE: it is important to note that the best way to store data is in S3 or Database.
+
+
+####################################################################################################
+
+=========== DOCKER COMPOSE =============
+
+This allows you to utilize 1 command to create and start all services by using a single yaml file
+
+
+====================================================================
+
+# create python file app.py
+
+
+from flask import Flask
+
+app = Flask(__name__)
+
+
+@app.route('/')
+def hello_docker():
+    return "<h1>Hello, Docker!</h1>"
+
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000)
+
+
+
+=================================================================
+
+# Now create a file app.Dockerfile for this python file
+
+FROM python:3.8-slim
+
+WORKDIR /app
+
+COPY app.py .
+
+RUN pip install flask
+
+EXPOSE 5000
+
+CMD ["python", "app.py"]
+
+==================================================================
+
+# Great, lets work with the docker-compose file now.
+
+# Create a file docker-compose.yaml
+
+
+version: '3'
+services:
+  myyoutube:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:80"
+
+  app:
+    build:
+      context: .
+      dockerfile: app.Dockerfile
+    ports:
+      - "8082:5000"
+
+
+
+To execute this docker compose, run
+
+"docker-compose up -d"
+To bring it down
+
+"docker-compose down"
+
+
+============== INSTALL DOCKER COMOSE ON ec2 ================
